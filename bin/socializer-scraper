@@ -29,8 +29,8 @@ class Socializer::Scraper::CLI < Thor
         list  |= found
 
         found  = found.count
-        found  = "+" if found > 9
-        found  = "." if found < 1
+        found  = "+" if found.to_i > 9
+        found  = "." if found.to_i < 1
 
         if counter % 100 == 99
           File.open(file, "w") { |f| f.puts list.to_yaml }
