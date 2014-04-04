@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 
+require 'pry'
 require 'yaml'
 require 'thor'
 require 'fileutils'
@@ -17,10 +18,11 @@ class Socializer::Scraper::CLI < Thor
       puts "Scraping website: #{website}"
       puts "=" * 100
 
-      file = File.join(Dir.pwd, "#{website}.yml")
+      website = URI.parse("http://#{website}") unless website.start_with?("http")
+      file = File.join(Dir.pwd, "#{website.host}.yml")
       counter, list = 0, (File.exists?(file) ? YAML.load_file(file) : [])
 
-      extractor.url = "http://" + website unless website.start_with?("http")
+      extractor.url = website.to_s
       extractor.run do |page, collector, found|
         found  = found.map{ |email| email.strip }.accumulate - list
         list  |= found
