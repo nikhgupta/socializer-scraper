@@ -12,7 +12,7 @@ module Socializer
         end rescue []
 
         (emails | page_links).map do |e|
-          uri = URI.parse(URI.encode(e))
+          uri = URI.parse(URI.encode(e)) rescue nil
           uri.to if uri.respond_to?(:to)
         end.compact
       end
