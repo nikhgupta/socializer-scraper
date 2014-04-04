@@ -29,7 +29,8 @@ module Socializer
 
       def run *patterns, &block
         data, options = {}, patterns.extract_options!
-        page_wise = options.fetch(:page_wise, false)
+        page_wise = options.delete(:page_wise)
+        patterns  = patterns.push(options)
 
         perform(*patterns) do |page|
           collectors.each do |collector|
@@ -71,12 +72,13 @@ module Socializer
       private
 
       def perform *patterns, &block
+        options = patterns.extract_options!
         message = "Please, provide a URL that starts with HTTP or HTTPS"
         raise URI::InvalidURIError, message unless @url.url?
 
         patterns.push(/.*/) if patterns.empty?
 
-        Anemone.crawl(@url) do |anemone|
+        Anemone.crawl(@url, options) do |anemone|
           anemone.storage = Anemone::Storage.MongoDB
           anemone.on_pages_like(*patterns) do |page|
             @page, @html, @current_url = page, nil, page.url
