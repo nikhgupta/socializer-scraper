@@ -1,3 +1,58 @@
 #!/usr/bin/env ruby
 
+require 'yaml'
+require 'thor'
+require 'fileutils'
 require 'socializer/scraper'
+
+class Socializer::Scraper::CLI < Thor
+
+  desc "emails [URLs]", "scrape emails for a given URL and all subsequently found URLs"
+  def emails(*urls)
+    extractor = Socializer::Scraper::Extractor.new collectors: [:email]
+    urls.each do |website|
+
+      puts "=" * 100
+      puts "Current Time is : #{Time.now.utc}"
+      puts "Scraping website: #{website}"
+      puts "=" * 100
+
+      file = File.join(Dir.pwd, "#{website}.yml")
+      counter, list = 0, (File.exists?(file) ? YAML.load_file(file) : [])
+
+      extractor.url = "http://" + website unless website.start_with?("http")
+      extractor.run do |page, collector, found|
+        found  = found.map{ |email| email.strip }.accumulate - list
+        list  |= found
+
+        found  = found.count
+        found  = "+" if found > 9
+        found  = "." if found < 1
+
+        if counter % 100 == 99
+          File.open(file, "w") { |f| f.puts list.to_yaml }
+          puts found
+        else
+          print found
+        end
+
+        counter += 1
+      end
+
+      puts "=" * 100
+      puts "Finish Time is  : #{Time.now.utc}"
+      puts "Emails Found    : #{list.count}"
+    end
+  end
+
+end
+
+Socializer::Scraper::CLI.start ARGV
+
+websites = %w[
+  www.thegearpage.net
+  www.hugeracksin.com
+  www.rig-talk.com
+  www.guitariste.com
+  www.tonequest.com
+]

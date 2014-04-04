@@ -24,7 +24,8 @@ Gem::Specification.new do |spec|
   spec.add_development_dependency "yard"
   spec.add_development_dependency "guard-yard"
 
-  spec.add_dependency "bson_ext"
+  spec.add_dependency "thor"
   spec.add_dependency "mongo"
   spec.add_dependency "anemone"
+  spec.add_dependency "bson_ext"
 end
