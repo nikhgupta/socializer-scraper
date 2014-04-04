@@ -5,6 +5,7 @@ require 'yaml'
 require 'thor'
 require 'fileutils'
 require 'socializer/scraper'
+STDOUT.sync = true
 
 class Socializer::Scraper::CLI < Thor
 
@@ -33,9 +34,9 @@ class Socializer::Scraper::CLI < Thor
 
         if counter % 100 == 99
           File.open(file, "w") { |f| f.puts list.to_yaml }
-          puts found
+          STDOUT.puts found
         else
-          print found
+          STDOUT.print found
         end
 
         counter += 1
