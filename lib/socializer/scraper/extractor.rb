@@ -79,7 +79,7 @@ module Socializer
         patterns.push(/.*/) if patterns.empty?
 
         Anemone.crawl(@url, options) do |anemone|
-          anemone.threads = 2
+          anemone.threads = 4
           anemone.verbose = true
           anemone.obey_robots_txt = true
           anemone.accept_cookies = true
