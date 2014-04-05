@@ -79,11 +79,24 @@ module Socializer
         patterns.push(/.*/) if patterns.empty?
 
         Anemone.crawl(@url, options) do |anemone|
+          anemone.threads = 2
+          anemone.verbose = true
+          anemone.obey_robots_txt = true
+          anemone.accept_cookies = true
+          anemone.user_agent = "Googlebot"
           anemone.storage = Anemone::Storage.MongoDB
-          anemone.on_pages_like(*patterns) do |page|
+          anemone.focus_crawl{|page| links_matching(page.links, patterns) }
+          anemone.on_every_page do |page|
             @page, @html, @current_url = page, nil, page.url
             yield(page)
           end
+        end
+      end
+
+      def links_matching links, patterns = []
+        return links if patterns.empty?
+        links.select do |link|
+          patterns.detect{|p| link.to_s =~ p}
         end
       end
     end

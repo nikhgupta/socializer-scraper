@@ -10,6 +10,7 @@ STDOUT.sync = true
 class Socializer::Scraper::CLI < Thor
 
   desc "emails [URLs]", "scrape emails for a given URL and all subsequently found URLs"
+  method_options pattern: :string, desc: "Comma separate list of patterns that selects which links to follow"
   def emails(*urls)
     extractor = Socializer::Scraper::Extractor.new collectors: [:email]
     urls.each do |website|
@@ -19,13 +20,15 @@ class Socializer::Scraper::CLI < Thor
       puts "Scraping website: #{website}"
       puts "=" * 100
 
-      website = URI.parse("http://#{website}") unless website.start_with?("http")
+      website = URI.parse(website.start_with?("http") ? website : "http://#{website}")
       file = File.join(Dir.pwd, "#{website.host}.yml")
       counter, list = 0, (File.exists?(file) ? YAML.load_file(file) : [])
 
+      patterns = options.has_key?("pattern") ? options["pattern"].split(",").map{|a| Regexp.new a} : []
+
       extractor.url = website.to_s
-      extractor.run do |page, collector, found|
-        found  = found.map{ |email| email.strip }.accumulate - list
+      extractor.run(*patterns) do |page, collector, found|
+        found  = found.map{ |email| email.strip.downcase }.accumulate - list
         list  |= found
 
         found = found.count
@@ -51,11 +54,3 @@ class Socializer::Scraper::CLI < Thor
 end
 
 Socializer::Scraper::CLI.start ARGV
-
-websites = %w[
-  www.thegearpage.net
-  www.hugeracksin.com
-  www.rig-talk.com
-  www.guitariste.com
-  www.tonequest.com
-]
